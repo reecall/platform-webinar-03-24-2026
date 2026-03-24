@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+    --primary: 272 60% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 50% 96%;
+    --secondary-foreground: 272 60% 35%;
+    --muted: 270 20% 95%;
+    --muted-foreground: 240 5% 46%;
+    --accent: 270 50% 96%;
+    --accent-foreground: 272 60% 35%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 270 15% 90%;
+    --input: 270 15% 90%;
+    --ring: 272 60% 45%;
+    --radius: 0.75rem;
+
+    --sidebar: 252 25% 8%;
+    --sidebar-foreground: 270 10% 85%;
+    --sidebar-muted: 252 20% 14%;
+    --sidebar-accent: 272 60% 45%;
+  }
+
+  .dark {
+    --background: 252 25% 6%;
+    --foreground: 270 10% 90%;
+    --card: 252 25% 9%;
+    --card-foreground: 270 10% 90%;
+    --popover: 252 25% 9%;
+    --popover-foreground: 270 10% 90%;
+    --primary: 272 60% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 252 20% 14%;
+    --secondary-foreground: 270 30% 80%;
+    --muted: 252 20% 14%;
+    --muted-foreground: 270 10% 55%;
+    --accent: 252 20% 14%;
+    --accent-foreground: 270 30% 80%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 252 15% 16%;
+    --input: 252 15% 16%;
+    --ring: 272 60% 55%;
+
+    --sidebar: 252 25% 5%;
+    --sidebar-foreground: 270 10% 75%;
+    --sidebar-muted: 252 20% 10%;
+    --sidebar-accent: 272 60% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+/* Subtle grid pattern for backgrounds */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, hsl(272 60% 45% / 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(272 60% 45% / 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Purple glow effect for interactive elements */
+.glow-purple {
+  box-shadow: 0 0 20px hsl(272 60% 45% / 0.15), 0 0 60px hsl(272 60% 45% / 0.05);
+}
+
+.glow-purple-strong {
+  box-shadow: 0 0 25px hsl(272 60% 45% / 0.25), 0 0 80px hsl(272 60% 45% / 0.1);
+}
+
+/* Gradient text utility */
+.text-gradient {
+  background: linear-gradient(135deg, hsl(272 60% 55%), hsl(290 60% 65%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Smooth scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(270 15% 80%);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(270 15% 65%);
+}
+
+/* LiveKit BarVisualizer override */
+.lk-bar-visualizer {
+  --lk-bar-color: hsl(272 60% 55%) !important;
+}

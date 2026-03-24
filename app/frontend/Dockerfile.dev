@@ -1,0 +1,18 @@
+FROM node:24-alpine
+WORKDIR /app
+
+# Copy workspace root files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy package.json for both workspaces (needed for pnpm workspace resolution)
+COPY frontend/package.json ./frontend/
+COPY backend/package.json ./backend/
+
+# Install dependencies
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
+
+# Copy frontend source (will be overridden by bind mount for src/)
+COPY frontend/ ./frontend/
+
+EXPOSE 5173
+CMD ["pnpm", "--filter", "reecall-webrtc-demo-frontend", "dev"]
