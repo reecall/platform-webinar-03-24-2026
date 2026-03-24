@@ -19,6 +19,7 @@ Requests are meant to be run in order.
 | Variable | Description |
 |---|---|
 | `apiKey` | Reecall API bearer token (secret) |
+| `projectId` | ID of the Reecall project to scope requests to |
 | `mcpToken` | MCP server auth token (secret) |
 | `mcpUrl` | HTTP URL of the MCP server used for appointment booking |
 | `transferNumber` | Phone number for call transfers (secret) |
