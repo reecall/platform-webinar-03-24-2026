@@ -1,0 +1,19 @@
+meta {
+  name: Get Models
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/ai/STS?where={"name":"GPT Realtime 1.5"}
+  body: none
+  auth: bearer
+}
+
+params:query {
+  where: {"name":"GPT Realtime 1.5"}
+}
+
+auth:bearer {
+  token: {{apiKey}}
+}

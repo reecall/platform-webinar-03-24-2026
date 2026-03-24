@@ -1,0 +1,21 @@
+meta {
+  name: Create Knowledge - Motifs RDV
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/ai/knowledges/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Motifs de consultation acceptés pour la prise de RDV",
+    "content": "Les motifs de consultation disponibles à la prise de RDV sont : consultation générale, renouvellement d'ordonnance, vaccination, certificat médical, suivi de pathologie chronique, consultation d'urgence (sous réserve de disponibilité).",
+    "knowledgeBaseId": "{{knowledgeBaseId}}",
+    "available": true,
+    "projectId": "{{projectId}}"
+  }
+}

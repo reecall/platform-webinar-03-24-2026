@@ -1,0 +1,21 @@
+meta {
+  name: Create Knowledge - Parking
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/ai/knowledges/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Parking et accès véhicule",
+    "content": "Un parking gratuit de 20 places est disponible devant le cabinet, accessible par la rue des Lilas. Deux places sont réservées aux personnes à mobilité réduite. Un dépose-minute est situé juste devant l'entrée principale.",
+    "knowledgeBaseId": "{{knowledgeBaseId}}",
+    "available": true,
+    "projectId": "{{projectId}}"
+  }
+}

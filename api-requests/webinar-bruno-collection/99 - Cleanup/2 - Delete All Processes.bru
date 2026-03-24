@@ -1,0 +1,22 @@
+meta {
+  name: Delete All Processes
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/automation/processes/?where={"projectId":"{{projectId}}"}
+  body: none
+  auth: inherit
+}
+
+script:post-response {
+  const items = res.body;
+  if (items && items.length) {
+    for (const item of items) {
+      await axios.delete(`${bru.getEnvVar("baseUrl")}/automation/processes/${item.id}`, {
+        headers: { Authorization: `Bearer ${bru.getEnvVar("apiKey")}` }
+      });
+    }
+  }
+}

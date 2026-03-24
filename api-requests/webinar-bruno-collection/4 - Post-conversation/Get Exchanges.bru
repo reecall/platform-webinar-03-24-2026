@@ -1,0 +1,17 @@
+meta {
+  name: Get Exchanges
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/conversational/exchanges/?where={"assistantId":"{{assistantId}}"}&limit=5&orderBy={"createdAt":"desc"}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  where: {"assistantId":"{{assistantId}}"}
+  limit: 5
+  orderBy: {"createdAt":"desc"}
+}

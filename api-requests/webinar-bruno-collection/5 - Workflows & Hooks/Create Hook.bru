@@ -1,0 +1,26 @@
+meta {
+  name: Create Hook
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/automation/hooks/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Post-conversation → Évaluation",
+    "description": "Déclenche le process d'évaluation à chaque nouvelle conversation terminée",
+    "entity": "conversational.exchange",
+    "events": ["UPDATE"],
+    "processId": "{{processId}}",
+    "projectId": "{{projectId}}"
+  }
+}
+
+script:post-response {
+  bru.setVar("hookId", res.body.id);
+}

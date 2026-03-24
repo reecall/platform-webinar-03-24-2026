@@ -1,0 +1,24 @@
+meta {
+  name: Create Channel WebRTC
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/conversational/channels/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Medical Channel - Webinar Demo",
+    "type": "WEBRTC",
+    "assistantId": "{{assistantId}}",
+    "projectId": "{{projectId}}"
+  }
+}
+
+script:post-response {
+  bru.setVar("channelId", res.body.id);
+}

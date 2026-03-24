@@ -1,0 +1,21 @@
+meta {
+  name: Create Knowledge - Accessibilite
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/ai/knowledges/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Accessibilité personnes à mobilité réduites",
+    "content": "Le cabinet est entièrement accessible aux personnes à mobilité réduite. L'entrée principale est de plain-pied avec une rampe d'accès. Un ascenseur dessert tous les étages. Les sanitaires sont adaptés PMR au rez-de-chaussée.",
+    "knowledgeBaseId": "{{knowledgeBaseId}}",
+    "available": true,
+    "projectId": "{{projectId}}"
+  }
+}

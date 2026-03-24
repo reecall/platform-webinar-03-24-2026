@@ -1,0 +1,19 @@
+meta {
+  name: Get Tool Definitions
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/ai/toolDefinitions
+  body: none
+  auth: inherit
+}
+
+script:post-response {
+  const defs = res.body;
+  const transfer = defs.find(d => d.name === "transfer_conversation");
+  const endConv = defs.find(d => d.name === "end_conversation");
+  if (transfer) bru.setVar("transferToolDefinitionId", transfer.id);
+  if (endConv) bru.setVar("endConversationToolDefinitionId", endConv.id);
+}

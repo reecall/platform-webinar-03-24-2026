@@ -1,0 +1,177 @@
+meta {
+  name: Create Workflow
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/automation/processes/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Évaluation post-conversation",
+    "description": "Analyse automatique de la qualité des conversations par 3 agents LLM en parallèle",
+    "steps": [
+      {
+        "type": "batch",
+        "output": "evaluation",
+        "config": {
+          "mode": "all",
+          "steps": [
+            {
+              "type": "agent",
+              "output": "quality_analysis",
+              "config": {
+                "provider": "openai",
+                "model": "gpt-4.1",
+                "temperature": 0.2,
+                "systemPrompt": "Tu es un expert en qualité de service client. Analyse la conversation fournie et évalue la qualité de l'interaction de l'assistant vocal.",
+                "input": "Voici le transcript de la conversation :\n\n<< messages.map(m => m.from + ': ' + m.message).join('\\n') >>",
+                "outputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "tone_score": {
+                      "type": "number",
+                      "description": "Score de qualité du ton (0-10)"
+                    },
+                    "clarity_score": {
+                      "type": "number",
+                      "description": "Score de clarté des réponses (0-10)"
+                    },
+                    "fluidity_score": {
+                      "type": "number",
+                      "description": "Score de fluidité de la conversation (0-10)"
+                    },
+                    "overall_score": {
+                      "type": "number",
+                      "description": "Score global de qualité (0-10)"
+                    },
+                    "strengths": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Points forts de la conversation"
+                    },
+                    "improvements": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Axes d'amélioration"
+                    }
+                  },
+                  "required": ["tone_score", "clarity_score", "fluidity_score", "overall_score", "strengths", "improvements"]
+                }
+              }
+            },
+            {
+              "type": "agent",
+              "output": "resolution_analysis",
+              "config": {
+                "provider": "openai",
+                "model": "gpt-4.1",
+                "temperature": 0.2,
+                "systemPrompt": "Tu es un analyste de résolution de demandes client. Détermine si le besoin de l'appelant a été satisfait pendant la conversation.",
+                "input": "Voici le transcript de la conversation :\n\n<< messages.map(m => m.from + ': ' + m.message).join('\\n') >>\n\nVoici les events (appels d'outils) :\n\n<< JSON.stringify(events, null, 2) >>",
+                "outputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "caller_intent": {
+                      "type": "string",
+                      "description": "L'intention principale de l'appelant"
+                    },
+                    "resolution_status": {
+                      "type": "string",
+                      "enum": ["resolved", "partially_resolved", "unresolved", "transferred"],
+                      "description": "Statut de résolution de la demande"
+                    },
+                    "tools_used": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Liste des outils utilisés pendant la conversation"
+                    },
+                    "resolution_details": {
+                      "type": "string",
+                      "description": "Détail de comment la demande a été traitée"
+                    }
+                  },
+                  "required": ["caller_intent", "resolution_status", "tools_used", "resolution_details"]
+                }
+              }
+            },
+            {
+              "type": "agent",
+              "output": "summary",
+              "config": {
+                "provider": "openai",
+                "model": "gpt-4.1",
+                "temperature": 0.3,
+                "systemPrompt": "Tu es un rédacteur de comptes-rendus d'appels. Produis un résumé structuré et concis de la conversation.",
+                "input": "Voici le transcript de la conversation :\n\n<< messages.map(m => m.from + ': ' + m.message).join('\\n') >>",
+                "outputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "description": "Titre court de la conversation (max 10 mots)"
+                    },
+                    "summary": {
+                      "type": "string",
+                      "description": "Résumé de la conversation en 2-3 phrases"
+                    },
+                    "action_items": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Actions à suivre après la conversation"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Tags de catégorisation (ex: faq, rdv, transfer, urgence)"
+                    }
+                  },
+                  "required": ["title", "summary", "action_items", "tags"]
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "request",
+        "output": "webhook_result",
+        "config": {
+          "url": "https://ad-webinar-backend.eu.ngrok.io/api/webhook/evaluation",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "data": {
+            "exchangeId": "{{ id }}",
+            "assistantId": "{{ assistantId }}",
+            "quality": "<< evaluation.quality_analysis.output >>",
+            "resolution": "<< evaluation.resolution_analysis.output >>",
+            "summary": "<< evaluation.summary.output >>"
+          }
+        }
+      },
+      {
+        "type": "email",
+        "output": "email_result",
+        "config": {
+          "to": "antoine@reecall.co",
+          "from": "noreply@reecall.co",
+          "fromName": "Reecall - Évaluation Automatique",
+          "subject": "Rapport d'évaluation - {{ evaluation.summary.output.title }}",
+          "htmlPart": "<h1>Rapport d'évaluation de conversation</h1><h2>Résumé</h2><p>{{ evaluation.summary.output.summary }}</p><h2>Qualité ({{ evaluation.quality_analysis.output.overall_score }}/10)</h2><p><strong>Ton :</strong> {{ evaluation.quality_analysis.output.tone_score }}/10<br/><strong>Clarté :</strong> {{ evaluation.quality_analysis.output.clarity_score }}/10<br/><strong>Fluidité :</strong> {{ evaluation.quality_analysis.output.fluidity_score }}/10</p><h2>Résolution</h2><p><strong>Intent :</strong> {{ evaluation.resolution_analysis.output.caller_intent }}<br/><strong>Statut :</strong> {{ evaluation.resolution_analysis.output.resolution_status }}</p><p>{{ evaluation.resolution_analysis.output.resolution_details }}</p>"
+        }
+      }
+    ],
+    "projectId": "{{projectId}}"
+  }
+
+}
+
+script:post-response {
+  bru.setVar("processId", res.body.id);
+}

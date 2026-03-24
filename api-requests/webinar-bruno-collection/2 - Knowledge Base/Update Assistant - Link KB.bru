@@ -1,0 +1,17 @@
+meta {
+  name: Update Assistant - Link KB
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{baseUrl}}/conversational/assistants/{{assistantId}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "knowledgeBaseIds": ["{{knowledgeBaseId}}"]
+  }
+}

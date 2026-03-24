@@ -1,0 +1,27 @@
+meta {
+  name: Create MCP Server Configuration
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/ai/MCP/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "Medical appointment booking",
+    "description": "Serveur MCP mock pour la prise de rendez-vous médicaux.",
+    "url": "{{mcpUrl}}",
+    "headers": {
+      "Authorization": "Bearer {{mcpToken}}"
+    },
+    "projectId": "{{projectId}}"
+  }
+}
+
+script:post-response {
+  bru.setVar("mcpId", res.body.id);
+}

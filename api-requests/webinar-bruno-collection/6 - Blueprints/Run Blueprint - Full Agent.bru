@@ -1,0 +1,158 @@
+meta {
+  name: Run Blueprint - Full Agent
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/core/blueprints/run
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "blueprint": {
+      "models": [
+        {
+          "name": "KB",
+          "model": "ai.KnowledgeBase",
+          "template": {
+            "name": "FAQ {{ clientName }}",
+            "description": "Questions fréquentes des patients : horaires, parking, accessibilité, motifs de consultation",
+            "projectId": "{{ projectId }}"
+          }
+        },
+        {
+          "name": "KNOWLEDGE_HORAIRES",
+          "model": "ai.Knowledge",
+          "template": {
+            "title": "Horaires d'ouverture",
+            "content": "Le cabinet est ouvert du lundi au vendredi de 8h30 à 12h30 et de 14h00 à 18h30. Le samedi matin de 9h00 à 12h00 sur rendez-vous uniquement. Le cabinet est fermé le dimanche et les jours fériés.",
+            "knowledgeBaseId": "{{ blueprint.KB }}",
+            "available": true,
+            "projectId": "{{ projectId }}"
+          }
+        },
+        {
+          "name": "KNOWLEDGE_PARKING",
+          "model": "ai.Knowledge",
+          "template": {
+            "title": "Parking et accès véhicule",
+            "content": "Un parking gratuit de 20 places est disponible devant le cabinet, accessible par la rue des Lilas. Deux places sont réservées aux personnes à mobilité réduite. Un dépose-minute est situé juste devant l'entrée principale.",
+            "knowledgeBaseId": "{{ blueprint.KB }}",
+            "available": true,
+            "projectId": "{{ projectId }}"
+          }
+        },
+        {
+          "name": "KNOWLEDGE_ACCESSIBILITE",
+          "model": "ai.Knowledge",
+          "template": {
+            "title": "Accessibilité personnes à mobilité réduites",
+            "content": "Le cabinet est entièrement accessible aux personnes à mobilité réduite. L'entrée principale est de plain-pied avec une rampe d'accès. Un ascenseur dessert tous les étages. Les sanitaires sont adaptés PMR au rez-de-chaussée.",
+            "knowledgeBaseId": "{{ blueprint.KB }}",
+            "available": true,
+            "projectId": "{{ projectId }}"
+          }
+        },
+        {
+          "name": "KNOWLEDGE_MOTIFS",
+          "model": "ai.Knowledge",
+          "template": {
+            "title": "Motifs de consultation acceptés pour la prise de RDV",
+            "content": "Les motifs de consultation disponibles à la prise de RDV sont : consultation générale, renouvellement d'ordonnance, vaccination, certificat médical, suivi de pathologie chronique, consultation d'urgence (sous réserve de disponibilité).",
+            "knowledgeBaseId": "{{ blueprint.KB }}",
+            "available": true,
+            "projectId": "{{ projectId }}"
+          }
+        },
+        {
+          "name": "MCP",
+          "model": "ai.Mcp",
+          "template": {
+            "name": "{{ mcpName }}",
+            "description": "Serveur MCP mock pour la prise de rendez-vous médicaux.",
+            "url": "{{ mcpUrl }}",
+            "headers": {{ headers }},
+            "projectId": "{{ projectId }}"
+          }
+        },
+        {
+          "name": "ASSISTANT",
+          "model": "conversational.Assistant",
+          "template": {
+            "name": "{{ assistantName }}",
+            "instructions": "# Identité\nTu es l'assistant vocal du {{ clientName }}. Tu réponds aux appels téléphoniques des patients.\n# Règle absolue — Interdiction d'inventer\nTu ne dois JAMAIS inventer, supposer, déduire ou extrapoler une information qui n'est pas explicitement écrite dans ce prompt. Si la question du patient porte sur un sujet non couvert ci-dessus, tu dois répondre :\n« Veuillez m'excuser, je n'ai pas cette information. »\nCette règle est prioritaire sur toutes les autres. En cas de doute, applique cette règle.\n# Tâches\n1. **Répondre aux questions fréquentes** en utilisant UNIQUEMENT les informations présentent dans ce prompt.\n2. **Aider à la prise de rendez-vous** :\n   - Demande le motif de consultation\n   - Demande la préférence de créneau (jour, matin/après-midi)\n   - Utilise ensuite l'outil de prise de rendez-vous\n3. **Transférer vers un agent humain** si le patient le demande explicitement, ou si la situation dépasse tes capacités.\n# Ton et style\n- Poli, professionnel, rassurant\n- Phrases courtes et claires (contexte téléphonique)\n- Vouvoiement systématique\n- Pas de jargon médical inutile\n# Interdictions\n- Ne jamais donner de conseil médical, de diagnostic ou d'avis thérapeutique\n- Ne jamais confirmer ou infirmer un diagnostic\n- Ne jamais communiquer d'information personnelle sur un médecin ou un patient\n- Ne jamais inventer une information (voir règle absolue ci-dessus)",
+            "language": "fr-FR",
+            "timezone": "Europe/Paris",
+            "temperature": 0.3,
+            "stsId": "{{ stsId }}",
+            "voiceId": "{{ voiceId }}",
+            "firstMessage": "Bonjour, bienvenue au {{ clientName }}. Comment puis-je vous aider ?",
+            "knowledgeBaseIds": ["{{ blueprint.KB }}"],
+            "mcpIds": ["{{ blueprint.MCP }}"],
+            "projectId": "{{ projectId }}"
+          }
+        },
+        {
+          "name": "TRANSFER_TOOL",
+          "model": "ai.Tool",
+          "template": {
+            "assistantId": "{{ blueprint.ASSISTANT }}",
+            "definitionId": "{{ transferToolDefinitionId }}",
+            "configuration": {
+              "transfers": [
+                {
+                  "destination": "{{ transferNumber }}",
+                  "condition": "L'appelant demande explicitement à parler à un agent humain, un médecin, ou une personne réelle",
+                  "preTransferSentence": "Je vous transfère immédiatement vers notre secrétariat. Un instant s'il vous plaît."
+                }
+              ]
+            },
+            "projectId": "{{ projectId }}"
+          }
+        },
+        {
+          "name": "CHANNEL",
+          "model": "conversational.Channel",
+          "template": {
+            "name": "{{ channelName }}",
+            "type": "WEBRTC",
+            "assistantId": "{{ blueprint.ASSISTANT }}",
+            "projectId": "{{ projectId }}"
+          }
+        }
+      ],
+      "overrides": {}
+    },
+    "context": {
+      "clientName": "Cabinet Médical Saint-Martin",
+      "assistantName": "Assistant Cabinet Médical - Webinar Demo",
+      "channelName": "Medical Channel - Webinar Demo",
+      "mcpName": "Medical appointment booking",
+      "stsId": "{{stsId}}",
+      "voiceId": "{{voiceId}}",
+      "mcpUrl": "{{mcpUrl}}",
+      "headers": {
+        "Authorization": "Bearer {{mcpToken}}"
+      },
+      "projectId": "{{projectId}}",
+      "endConversationToolDefinitionId": "{{endConversationToolDefinitionId}}",
+      "transferToolDefinitionId": "{{transferToolDefinitionId}}",
+      "transferNumber": "{{transferNumber}}"
+    }
+  }
+}
+
+script:post-response {
+  const results = res.body.results;
+  if (results) {
+    if (results.ASSISTANT) bru.setVar("assistantId", results.ASSISTANT);
+    if (results.CHANNEL) bru.setVar("channelId", results.CHANNEL);
+    if (results.KB) bru.setVar("knowledgeBaseId", results.KB);
+    if (results.MCP) bru.setVar("mcpId", results.MCP);
+    if (results.TRANSFER_TOOL) bru.setVar("transferToolId", results.TRANSFER_TOOL);
+    if (results.END_CONVERSATION_TOOL) bru.setVar("endConversationToolId", results.END_CONVERSATION_TOOL);
+  }
+}

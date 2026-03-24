@@ -1,0 +1,32 @@
+meta {
+  name: Create Transfer Tool
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/ai/tools/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "assistantId": "{{assistantId}}",
+    "definitionId": "{{transferToolDefinitionId}}",
+    "configuration": {
+      "transfers": [
+        {
+          "destination": "{{transferNumber}}",
+          "condition": "L'appelant demande explicitement à parler à un agent humain, un médecin, ou une personne réelle",
+          "preTransferSentence": "Je vous transfère immédiatement vers notre secrétariat. Un instant s'il vous plaît."
+        }
+      ]
+    },
+    "projectId": "{{projectId}}"
+  }
+}
+
+script:post-response {
+  bru.setVar("transferToolId", res.body.id);
+}

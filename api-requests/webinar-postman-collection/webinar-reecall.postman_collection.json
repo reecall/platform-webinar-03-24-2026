@@ -1,0 +1,1095 @@
+{
+	"info": {
+		"_postman_id": "webinar-reecall",
+		"name": "webinar-reecall",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{apiKey}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [],
+	"variable": [],
+	"item": [
+		{
+			"name": "0 - Setup",
+			"item": [
+				{
+					"name": "Get Models",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{apiKey}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ai/STS?where={\"name\":\"GPT Realtime 1.5\"}",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "STS"],
+							"query": [
+								{
+									"key": "where",
+									"value": "{\"name\":\"GPT Realtime 1.5\"}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "1 - Assistant & Channel",
+			"item": [
+				{
+					"name": "Create Assistant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"assistantId\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Assistant Cabinet Médical - Webinar Demo\",\n  \"instructions\": \"# Identité\\nTu es l'assistant vocal du Cabinet Médical Saint-Martin. Tu réponds aux appels téléphoniques des patients.\\n# Règle absolue — Interdiction d'inventer\\nTu ne dois JAMAIS inventer, supposer, déduire ou extrapoler une information qui n'est pas explicitement écrite dans ce prompt. Si la question du patient porte sur un sujet non couvert ci-dessus, tu dois répondre :\\n« Veuillez m'excuser, je n'ai pas cette information. »\\nCette règle est prioritaire sur toutes les autres. En cas de doute, applique cette règle.\\n# Tâches\\n1. **Répondre aux questions fréquentes** en utilisant UNIQUEMENT les informations présentent dans ce prompt.\\n2. **Aider à la prise de rendez-vous** :\\n   - Demande le motif de consultation\\n   - Demande la préférence de créneau (jour, matin/après-midi)\\n   - Utilise ensuite l'outil de prise de rendez-vous\\n3. **Transférer vers un agent humain** si le patient le demande explicitement, ou si la situation dépasse tes capacités.\\n# Ton et style\\n- Poli, professionnel, rassurant\\n- Phrases courtes et claires (contexte téléphonique)\\n- Vouvoiement systématique\\n- Pas de jargon médical inutile\\n# Interdictions\\n- Ne jamais donner de conseil médical, de diagnostic ou d'avis thérapeutique\\n- Ne jamais confirmer ou infirmer un diagnostic\\n- Ne jamais communiquer d'information personnelle sur un médecin ou un patient\\n- Ne jamais inventer une information (voir règle absolue ci-dessus)\",\n  \"firstMessage\": \"Bonjour, bienvenue au Cabinet Médical Saint-Martin. Comment puis-je vous aider ?\",\n  \"language\": \"fr-FR\",\n  \"timezone\": \"Europe/Paris\",\n  \"temperature\": 0.3,\n  \"stsId\": \"{{stsId}}\",\n  \"voiceId\": \"{{voiceId}}\",\n  \"projectId\": \"{{projectId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/conversational/assistants/",
+							"host": ["{{baseUrl}}"],
+							"path": ["conversational", "assistants", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Channel WebRTC",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"channelId\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Medical Channel - Webinar Demo\",\n  \"type\": \"WEBRTC\",\n  \"assistantId\": \"{{assistantId}}\",\n  \"projectId\": \"{{projectId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/conversational/channels/",
+							"host": ["{{baseUrl}}"],
+							"path": ["conversational", "channels", ""]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2 - Knowledge Base",
+			"item": [
+				{
+					"name": "Create Knowledge Base",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"knowledgeBaseId\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"FAQ Cabinet Médical Saint-Martin\",\n  \"description\": \"Questions fréquentes des patients : horaires, parking, accessibilité, motifs de consultation\",\n  \"projectId\": \"{{projectId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai/knowledgeBases/",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "knowledgeBases", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Knowledge - Horaires",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Horaires d'ouverture\",\n  \"content\": \"Le cabinet est ouvert du lundi au vendredi de 8h30 à 12h30 et de 14h00 à 18h30. Le samedi matin de 9h00 à 12h00 sur rendez-vous uniquement. Le cabinet est fermé le dimanche et les jours fériés.\",\n  \"knowledgeBaseId\": \"{{knowledgeBaseId}}\",\n  \"available\": true,\n  \"projectId\": \"{{projectId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai/knowledges/",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "knowledges", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Knowledge - Parking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Parking et accès véhicule\",\n  \"content\": \"Un parking gratuit de 20 places est disponible devant le cabinet, accessible par la rue des Lilas. Deux places sont réservées aux personnes à mobilité réduite. Un dépose-minute est situé juste devant l'entrée principale.\",\n  \"knowledgeBaseId\": \"{{knowledgeBaseId}}\",\n  \"available\": true,\n  \"projectId\": \"{{projectId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai/knowledges/",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "knowledges", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Knowledge - Accessibilite",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Accessibilité personnes à mobilité réduites\",\n  \"content\": \"Le cabinet est entièrement accessible aux personnes à mobilité réduite. L'entrée principale est de plain-pied avec une rampe d'accès. Un ascenseur dessert tous les étages. Les sanitaires sont adaptés PMR au rez-de-chaussée.\",\n  \"knowledgeBaseId\": \"{{knowledgeBaseId}}\",\n  \"available\": true,\n  \"projectId\": \"{{projectId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai/knowledges/",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "knowledges", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Knowledge - Motifs RDV",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Motifs de consultation acceptés pour la prise de RDV\",\n  \"content\": \"Les motifs de consultation disponibles à la prise de RDV sont : consultation générale, renouvellement d'ordonnance, vaccination, certificat médical, suivi de pathologie chronique, consultation d'urgence (sous réserve de disponibilité).\",\n  \"knowledgeBaseId\": \"{{knowledgeBaseId}}\",\n  \"available\": true,\n  \"projectId\": \"{{projectId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai/knowledges/",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "knowledges", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Knowledge Base",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"knowledgeBaseId\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ai/knowledgeBases/{{knowledgeBaseId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "knowledgeBases", "{{knowledgeBaseId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Assistant - Link KB",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"knowledgeBaseIds\": [\"{{knowledgeBaseId}}\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/conversational/assistants/{{assistantId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["conversational", "assistants", "{{assistantId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3 - Tools & MCP",
+			"item": [
+				{
+					"name": "Tools",
+					"item": [
+						{
+							"name": "Get Tool Definitions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var defs = pm.response.json();",
+											"var transfer = defs.find(function(d) { return d.name === 'transfer_conversation'; });",
+											"var endConv = defs.find(function(d) { return d.name === 'end_conversation'; });",
+											"if (transfer) pm.environment.set('transferToolDefinitionId', transfer.id);",
+											"if (endConv) pm.environment.set('endConversationToolDefinitionId', endConv.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/ai/toolDefinitions",
+									"host": ["{{baseUrl}}"],
+									"path": ["ai", "toolDefinitions"]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Transfer Tool",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.environment.set(\"transferToolId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"assistantId\": \"{{assistantId}}\",\n  \"definitionId\": \"{{transferToolDefinitionId}}\",\n  \"configuration\": {\n    \"transfers\": [\n      {\n        \"destination\": \"{{transferNumber}}\",\n        \"condition\": \"L'appelant demande explicitement à parler à un agent humain, un médecin, ou une personne réelle\",\n        \"preTransferSentence\": \"Je vous transfère immédiatement vers notre secrétariat. Un instant s'il vous plaît.\"\n      }\n    ]\n  },\n  \"projectId\": \"{{projectId}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/ai/tools/",
+									"host": ["{{baseUrl}}"],
+									"path": ["ai", "tools", ""]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MCP Configuration",
+					"item": [
+						{
+							"name": "Create MCP Server Configuration",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.environment.set(\"mcpId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Medical appointment booking\",\n  \"description\": \"Serveur MCP mock pour la prise de rendez-vous médicaux.\",\n  \"url\": \"{{mcpUrl}}\",\n  \"headers\": {\n    \"Authorization\": \"Bearer {{mcpToken}}\"\n  },\n  \"projectId\": \"{{projectId}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/ai/MCP/",
+									"host": ["{{baseUrl}}"],
+									"path": ["ai", "MCP", ""]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Assistant - Link MCP",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"mcpIds\": [\"{{mcpId}}\"]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/conversational/assistants/{{assistantId}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["conversational", "assistants", "{{assistantId}}"]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "4 - Post-conversation",
+			"item": [
+				{
+					"name": "Get Exchanges",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/conversational/exchanges/?where={\"assistantId\":\"{{assistantId}}\"}&limit=5&orderBy={\"createdAt\":\"desc\"}",
+							"host": ["{{baseUrl}}"],
+							"path": ["conversational", "exchanges", ""],
+							"query": [
+								{
+									"key": "where",
+									"value": "{\"assistantId\":\"{{assistantId}}\"}"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								},
+								{
+									"key": "orderBy",
+									"value": "{\"createdAt\":\"desc\"}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5 - Workflows & Hooks",
+			"item": [
+				{
+					"name": "Create Workflow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"processId\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Évaluation post-conversation\",\n  \"description\": \"Analyse automatique de la qualité des conversations par 3 agents LLM en parallèle\",\n  \"steps\": [\n    {\n      \"type\": \"batch\",\n      \"output\": \"evaluation\",\n      \"config\": {\n        \"mode\": \"all\",\n        \"steps\": [\n          {\n            \"type\": \"agent\",\n            \"output\": \"quality_analysis\",\n            \"config\": {\n              \"provider\": \"openai\",\n              \"model\": \"gpt-4.1\",\n              \"temperature\": 0.2,\n              \"systemPrompt\": \"Tu es un expert en qualité de service client. Analyse la conversation fournie et évalue la qualité de l'interaction de l'assistant vocal.\",\n              \"input\": \"Voici le transcript de la conversation :\\n\\n<< messages.map(m => m.from + ': ' + m.message).join('\\\\n') >>\",\n              \"outputSchema\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"tone_score\": {\n                    \"type\": \"number\",\n                    \"description\": \"Score de qualité du ton (0-10)\"\n                  },\n                  \"clarity_score\": {\n                    \"type\": \"number\",\n                    \"description\": \"Score de clarté des réponses (0-10)\"\n                  },\n                  \"fluidity_score\": {\n                    \"type\": \"number\",\n                    \"description\": \"Score de fluidité de la conversation (0-10)\"\n                  },\n                  \"overall_score\": {\n                    \"type\": \"number\",\n                    \"description\": \"Score global de qualité (0-10)\"\n                  },\n                  \"strengths\": {\n                    \"type\": \"array\",\n                    \"items\": { \"type\": \"string\" },\n                    \"description\": \"Points forts de la conversation\"\n                  },\n                  \"improvements\": {\n                    \"type\": \"array\",\n                    \"items\": { \"type\": \"string\" },\n                    \"description\": \"Axes d'amélioration\"\n                  }\n                },\n                \"required\": [\"tone_score\", \"clarity_score\", \"fluidity_score\", \"overall_score\", \"strengths\", \"improvements\"]\n              }\n            }\n          },\n          {\n            \"type\": \"agent\",\n            \"output\": \"resolution_analysis\",\n            \"config\": {\n              \"provider\": \"openai\",\n              \"model\": \"gpt-4.1\",\n              \"temperature\": 0.2,\n              \"systemPrompt\": \"Tu es un analyste de résolution de demandes client. Détermine si le besoin de l'appelant a été satisfait pendant la conversation.\",\n              \"input\": \"Voici le transcript de la conversation :\\n\\n<< messages.map(m => m.from + ': ' + m.message).join('\\\\n') >>\\n\\nVoici les events (appels d'outils) :\\n\\n<< JSON.stringify(events, null, 2) >>\",\n              \"outputSchema\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"caller_intent\": {\n                    \"type\": \"string\",\n                    \"description\": \"L'intention principale de l'appelant\"\n                  },\n                  \"resolution_status\": {\n                    \"type\": \"string\",\n                    \"enum\": [\"resolved\", \"partially_resolved\", \"unresolved\", \"transferred\"],\n                    \"description\": \"Statut de résolution de la demande\"\n                  },\n                  \"tools_used\": {\n                    \"type\": \"array\",\n                    \"items\": { \"type\": \"string\" },\n                    \"description\": \"Liste des outils utilisés pendant la conversation\"\n                  },\n                  \"resolution_details\": {\n                    \"type\": \"string\",\n                    \"description\": \"Détail de comment la demande a été traitée\"\n                  }\n                },\n                \"required\": [\"caller_intent\", \"resolution_status\", \"tools_used\", \"resolution_details\"]\n              }\n            }\n          },\n          {\n            \"type\": \"agent\",\n            \"output\": \"summary\",\n            \"config\": {\n              \"provider\": \"openai\",\n              \"model\": \"gpt-4.1\",\n              \"temperature\": 0.3,\n              \"systemPrompt\": \"Tu es un rédacteur de comptes-rendus d'appels. Produis un résumé structuré et concis de la conversation.\",\n              \"input\": \"Voici le transcript de la conversation :\\n\\n<< messages.map(m => m.from + ': ' + m.message).join('\\\\n') >>\",\n              \"outputSchema\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"title\": {\n                    \"type\": \"string\",\n                    \"description\": \"Titre court de la conversation (max 10 mots)\"\n                  },\n                  \"summary\": {\n                    \"type\": \"string\",\n                    \"description\": \"Résumé de la conversation en 2-3 phrases\"\n                  },\n                  \"action_items\": {\n                    \"type\": \"array\",\n                    \"items\": { \"type\": \"string\" },\n                    \"description\": \"Actions à suivre après la conversation\"\n                  },\n                  \"tags\": {\n                    \"type\": \"array\",\n                    \"items\": { \"type\": \"string\" },\n                    \"description\": \"Tags de catégorisation (ex: faq, rdv, transfer, urgence)\"\n                  }\n                },\n                \"required\": [\"title\", \"summary\", \"action_items\", \"tags\"]\n              }\n            }\n          }\n        ]\n      }\n    },\n    {\n      \"type\": \"request\",\n      \"output\": \"webhook_result\",\n      \"config\": {\n        \"url\": \"https://ad-webinar-backend.eu.ngrok.io/api/webhook/evaluation\",\n        \"method\": \"POST\",\n        \"headers\": {\n          \"Content-Type\": \"application/json\"\n        },\n        \"data\": {\n          \"exchangeId\": \"{{ id }}\",\n          \"assistantId\": \"{{ assistantId }}\",\n          \"quality\": \"<< evaluation.quality_analysis.output >>\",\n          \"resolution\": \"<< evaluation.resolution_analysis.output >>\",\n          \"summary\": \"<< evaluation.summary.output >>\"\n        }\n      }\n    },\n    {\n      \"type\": \"email\",\n      \"output\": \"email_result\",\n      \"config\": {\n        \"to\": \"antoine@reecall.co\",\n        \"from\": \"noreply@reecall.co\",\n        \"fromName\": \"Reecall - Évaluation Automatique\",\n        \"subject\": \"Rapport d'évaluation - {{ evaluation.summary.output.title }}\",\n        \"htmlPart\": \"<h1>Rapport d'évaluation de conversation</h1><h2>Résumé</h2><p>{{ evaluation.summary.output.summary }}</p><h2>Qualité ({{ evaluation.quality_analysis.output.overall_score }}/10)</h2><p><strong>Ton :</strong> {{ evaluation.quality_analysis.output.tone_score }}/10<br/><strong>Clarté :</strong> {{ evaluation.quality_analysis.output.clarity_score }}/10<br/><strong>Fluidité :</strong> {{ evaluation.quality_analysis.output.fluidity_score }}/10</p><h2>Résolution</h2><p><strong>Intent :</strong> {{ evaluation.resolution_analysis.output.caller_intent }}<br/><strong>Statut :</strong> {{ evaluation.resolution_analysis.output.resolution_status }}</p><p>{{ evaluation.resolution_analysis.output.resolution_details }}</p>\"\n      }\n    }\n  ],\n  \"projectId\": \"{{projectId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/automation/processes/",
+							"host": ["{{baseUrl}}"],
+							"path": ["automation", "processes", ""]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Hook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"hookId\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Post-conversation → Évaluation\",\n  \"description\": \"Déclenche le process d'évaluation à chaque nouvelle conversation terminée\",\n  \"entity\": \"conversational.exchange\",\n  \"events\": [\"UPDATE\"],\n  \"processId\": \"{{processId}}\",\n  \"projectId\": \"{{projectId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/automation/hooks/",
+							"host": ["{{baseUrl}}"],
+							"path": ["automation", "hooks", ""]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6 - Blueprints",
+			"item": [
+				{
+					"name": "Run Blueprint - Full Agent",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var results = pm.response.json().results;",
+									"if (results) {",
+									"  if (results.ASSISTANT) pm.environment.set('assistantId', results.ASSISTANT);",
+									"  if (results.CHANNEL) pm.environment.set('channelId', results.CHANNEL);",
+									"  if (results.KB) pm.environment.set('knowledgeBaseId', results.KB);",
+									"  if (results.MCP) pm.environment.set('mcpId', results.MCP);",
+									"  if (results.TRANSFER_TOOL) pm.environment.set('transferToolId', results.TRANSFER_TOOL);",
+									"  if (results.END_CONVERSATION_TOOL) pm.environment.set('endConversationToolId', results.END_CONVERSATION_TOOL);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"blueprint\": {\n    \"models\": [\n      {\n        \"name\": \"KB\",\n        \"model\": \"ai.KnowledgeBase\",\n        \"template\": {\n          \"name\": \"FAQ {{ clientName }}\",\n          \"description\": \"Questions fréquentes des patients : horaires, parking, accessibilité, motifs de consultation\",\n          \"projectId\": \"{{ projectId }}\"\n        }\n      },\n      {\n        \"name\": \"KNOWLEDGE_HORAIRES\",\n        \"model\": \"ai.Knowledge\",\n        \"template\": {\n          \"title\": \"Horaires d'ouverture\",\n          \"content\": \"Le cabinet est ouvert du lundi au vendredi de 8h30 à 12h30 et de 14h00 à 18h30. Le samedi matin de 9h00 à 12h00 sur rendez-vous uniquement. Le cabinet est fermé le dimanche et les jours fériés.\",\n          \"knowledgeBaseId\": \"{{ blueprint.KB }}\",\n          \"available\": true,\n          \"projectId\": \"{{ projectId }}\"\n        }\n      },\n      {\n        \"name\": \"KNOWLEDGE_PARKING\",\n        \"model\": \"ai.Knowledge\",\n        \"template\": {\n          \"title\": \"Parking et accès véhicule\",\n          \"content\": \"Un parking gratuit de 20 places est disponible devant le cabinet, accessible par la rue des Lilas. Deux places sont réservées aux personnes à mobilité réduite. Un dépose-minute est situé juste devant l'entrée principale.\",\n          \"knowledgeBaseId\": \"{{ blueprint.KB }}\",\n          \"available\": true,\n          \"projectId\": \"{{ projectId }}\"\n        }\n      },\n      {\n        \"name\": \"KNOWLEDGE_ACCESSIBILITE\",\n        \"model\": \"ai.Knowledge\",\n        \"template\": {\n          \"title\": \"Accessibilité personnes à mobilité réduites\",\n          \"content\": \"Le cabinet est entièrement accessible aux personnes à mobilité réduite. L'entrée principale est de plain-pied avec une rampe d'accès. Un ascenseur dessert tous les étages. Les sanitaires sont adaptés PMR au rez-de-chaussée.\",\n          \"knowledgeBaseId\": \"{{ blueprint.KB }}\",\n          \"available\": true,\n          \"projectId\": \"{{ projectId }}\"\n        }\n      },\n      {\n        \"name\": \"KNOWLEDGE_MOTIFS\",\n        \"model\": \"ai.Knowledge\",\n        \"template\": {\n          \"title\": \"Motifs de consultation acceptés pour la prise de RDV\",\n          \"content\": \"Les motifs de consultation disponibles à la prise de RDV sont : consultation générale, renouvellement d'ordonnance, vaccination, certificat médical, suivi de pathologie chronique, consultation d'urgence (sous réserve de disponibilité).\",\n          \"knowledgeBaseId\": \"{{ blueprint.KB }}\",\n          \"available\": true,\n          \"projectId\": \"{{ projectId }}\"\n        }\n      },\n      {\n        \"name\": \"MCP\",\n        \"model\": \"ai.Mcp\",\n        \"template\": {\n          \"name\": \"{{ mcpName }}\",\n          \"description\": \"Serveur MCP mock pour la prise de rendez-vous médicaux.\",\n          \"url\": \"{{ mcpUrl }}\",\n          \"headers\": {{ headers }},\n          \"projectId\": \"{{ projectId }}\"\n        }\n      },\n      {\n        \"name\": \"ASSISTANT\",\n        \"model\": \"conversational.Assistant\",\n        \"template\": {\n          \"name\": \"{{ assistantName }}\",\n          \"instructions\": \"# Identité\\nTu es l'assistant vocal du {{ clientName }}. Tu réponds aux appels téléphoniques des patients.\\n# Règle absolue — Interdiction d'inventer\\nTu ne dois JAMAIS inventer, supposer, déduire ou extrapoler une information qui n'est pas explicitement écrite dans ce prompt. Si la question du patient porte sur un sujet non couvert ci-dessus, tu dois répondre :\\n« Veuillez m'excuser, je n'ai pas cette information. »\\nCette règle est prioritaire sur toutes les autres. En cas de doute, applique cette règle.\\n# Tâches\\n1. **Répondre aux questions fréquentes** en utilisant UNIQUEMENT les informations présentent dans ce prompt.\\n2. **Aider à la prise de rendez-vous** :\\n   - Demande le motif de consultation\\n   - Demande la préférence de créneau (jour, matin/après-midi)\\n   - Utilise ensuite l'outil de prise de rendez-vous\\n3. **Transférer vers un agent humain** si le patient le demande explicitement, ou si la situation dépasse tes capacités.\\n# Ton et style\\n- Poli, professionnel, rassurant\\n- Phrases courtes et claires (contexte téléphonique)\\n- Vouvoiement systématique\\n- Pas de jargon médical inutile\\n# Interdictions\\n- Ne jamais donner de conseil médical, de diagnostic ou d'avis thérapeutique\\n- Ne jamais confirmer ou infirmer un diagnostic\\n- Ne jamais communiquer d'information personnelle sur un médecin ou un patient\\n- Ne jamais inventer une information (voir règle absolue ci-dessus)\",\n          \"language\": \"fr-FR\",\n          \"timezone\": \"Europe/Paris\",\n          \"temperature\": 0.3,\n          \"stsId\": \"{{ stsId }}\",\n          \"voiceId\": \"{{ voiceId }}\",\n          \"firstMessage\": \"Bonjour, bienvenue au {{ clientName }}. Comment puis-je vous aider ?\",\n          \"knowledgeBaseIds\": [\"{{ blueprint.KB }}\"],\n          \"mcpIds\": [\"{{ blueprint.MCP }}\"],\n          \"projectId\": \"{{ projectId }}\"\n        }\n      },\n      {\n        \"name\": \"TRANSFER_TOOL\",\n        \"model\": \"ai.Tool\",\n        \"template\": {\n          \"assistantId\": \"{{ blueprint.ASSISTANT }}\",\n          \"definitionId\": \"{{ transferToolDefinitionId }}\",\n          \"configuration\": {\n            \"transfers\": [\n              {\n                \"destination\": \"{{ transferNumber }}\",\n                \"condition\": \"L'appelant demande explicitement à parler à un agent humain, un médecin, ou une personne réelle\",\n                \"preTransferSentence\": \"Je vous transfère immédiatement vers notre secrétariat. Un instant s'il vous plaît.\"\n              }\n            ]\n          },\n          \"projectId\": \"{{ projectId }}\"\n        }\n      },\n      {\n        \"name\": \"CHANNEL\",\n        \"model\": \"conversational.Channel\",\n        \"template\": {\n          \"name\": \"{{ channelName }}\",\n          \"type\": \"WEBRTC\",\n          \"assistantId\": \"{{ blueprint.ASSISTANT }}\",\n          \"projectId\": \"{{ projectId }}\"\n        }\n      }\n    ],\n    \"overrides\": {}\n  },\n  \"context\": {\n    \"clientName\": \"Cabinet Médical Saint-Martin\",\n    \"assistantName\": \"Assistant Cabinet Médical - Webinar Demo\",\n    \"channelName\": \"Medical Channel - Webinar Demo\",\n    \"mcpName\": \"Medical appointment booking\",\n    \"stsId\": \"{{stsId}}\",\n    \"voiceId\": \"{{voiceId}}\",\n    \"mcpUrl\": \"{{mcpUrl}}\",\n    \"headers\": {\n      \"Authorization\": \"Bearer {{mcpToken}}\"\n    },\n    \"projectId\": \"{{projectId}}\",\n    \"endConversationToolDefinitionId\": \"{{endConversationToolDefinitionId}}\",\n    \"transferToolDefinitionId\": \"{{transferToolDefinitionId}}\",\n    \"transferNumber\": \"{{transferNumber}}\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/core/blueprints/run",
+							"host": ["{{baseUrl}}"],
+							"path": ["core", "blueprints", "run"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "99 - Cleanup",
+			"item": [
+				{
+					"name": "1 - Delete All Hooks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var items = pm.response.json();",
+									"if (items && items.length) {",
+									"  items.forEach(function(item) {",
+									"    pm.sendRequest({",
+									"      url: pm.environment.get('baseUrl') + '/automation/hooks/' + item.id,",
+									"      method: 'DELETE',",
+									"      header: {",
+									"        'Authorization': 'Bearer ' + pm.environment.get('apiKey')",
+									"      }",
+									"    });",
+									"  });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/automation/hooks/?where={\"projectId\":\"{{projectId}}\"}",
+							"host": ["{{baseUrl}}"],
+							"path": ["automation", "hooks", ""],
+							"query": [
+								{
+									"key": "where",
+									"value": "{\"projectId\":\"{{projectId}}\"}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2 - Delete All Processes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var items = pm.response.json();",
+									"if (items && items.length) {",
+									"  items.forEach(function(item) {",
+									"    pm.sendRequest({",
+									"      url: pm.environment.get('baseUrl') + '/automation/processes/' + item.id,",
+									"      method: 'DELETE',",
+									"      header: {",
+									"        'Authorization': 'Bearer ' + pm.environment.get('apiKey')",
+									"      }",
+									"    });",
+									"  });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/automation/processes/?where={\"projectId\":\"{{projectId}}\"}",
+							"host": ["{{baseUrl}}"],
+							"path": ["automation", "processes", ""],
+							"query": [
+								{
+									"key": "where",
+									"value": "{\"projectId\":\"{{projectId}}\"}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3 - Delete All Exchanges",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var items = pm.response.json();",
+									"if (items && items.length) {",
+									"  items.forEach(function(item) {",
+									"    pm.sendRequest({",
+									"      url: pm.environment.get('baseUrl') + '/conversational/exchanges/' + item.id,",
+									"      method: 'DELETE',",
+									"      header: {",
+									"        'Authorization': 'Bearer ' + pm.environment.get('apiKey')",
+									"      }",
+									"    });",
+									"  });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/conversational/exchanges/?where={\"projectId\":\"{{projectId}}\"}",
+							"host": ["{{baseUrl}}"],
+							"path": ["conversational", "exchanges", ""],
+							"query": [
+								{
+									"key": "where",
+									"value": "{\"projectId\":\"{{projectId}}\"}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4 - Delete All Channels",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var items = pm.response.json();",
+									"if (items && items.length) {",
+									"  items.forEach(function(item) {",
+									"    pm.sendRequest({",
+									"      url: pm.environment.get('baseUrl') + '/conversational/channels/' + item.id,",
+									"      method: 'DELETE',",
+									"      header: {",
+									"        'Authorization': 'Bearer ' + pm.environment.get('apiKey')",
+									"      }",
+									"    });",
+									"  });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/conversational/channels/?where={\"projectId\":\"{{projectId}}\"}",
+							"host": ["{{baseUrl}}"],
+							"path": ["conversational", "channels", ""],
+							"query": [
+								{
+									"key": "where",
+									"value": "{\"projectId\":\"{{projectId}}\"}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5 - Delete All Tools",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var items = pm.response.json();",
+									"if (items && items.length) {",
+									"  items.forEach(function(item) {",
+									"    pm.sendRequest({",
+									"      url: pm.environment.get('baseUrl') + '/ai/tools/' + item.id,",
+									"      method: 'DELETE',",
+									"      header: {",
+									"        'Authorization': 'Bearer ' + pm.environment.get('apiKey')",
+									"      }",
+									"    });",
+									"  });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ai/tools/?where={\"projectId\":\"{{projectId}}\"}",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "tools", ""],
+							"query": [
+								{
+									"key": "where",
+									"value": "{\"projectId\":\"{{projectId}}\"}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "6 - Delete All Assistants",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var items = pm.response.json();",
+									"if (items && items.length) {",
+									"  items.forEach(function(item) {",
+									"    pm.sendRequest({",
+									"      url: pm.environment.get('baseUrl') + '/conversational/assistants/' + item.id,",
+									"      method: 'DELETE',",
+									"      header: {",
+									"        'Authorization': 'Bearer ' + pm.environment.get('apiKey')",
+									"      }",
+									"    });",
+									"  });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/conversational/assistants/?where={\"projectId\":\"{{projectId}}\"}",
+							"host": ["{{baseUrl}}"],
+							"path": ["conversational", "assistants", ""],
+							"query": [
+								{
+									"key": "where",
+									"value": "{\"projectId\":\"{{projectId}}\"}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "7 - Delete All MCP Servers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var items = pm.response.json();",
+									"if (items && items.length) {",
+									"  items.forEach(function(item) {",
+									"    pm.sendRequest({",
+									"      url: pm.environment.get('baseUrl') + '/ai/MCP/' + item.id,",
+									"      method: 'DELETE',",
+									"      header: {",
+									"        'Authorization': 'Bearer ' + pm.environment.get('apiKey')",
+									"      }",
+									"    });",
+									"  });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ai/MCP/?where={\"projectId\":\"{{projectId}}\"}",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "MCP", ""],
+							"query": [
+								{
+									"key": "where",
+									"value": "{\"projectId\":\"{{projectId}}\"}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "8 - Delete All Knowledges",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var items = pm.response.json();",
+									"if (items && items.length) {",
+									"  items.forEach(function(item) {",
+									"    pm.sendRequest({",
+									"      url: pm.environment.get('baseUrl') + '/ai/knowledges/' + item.id,",
+									"      method: 'DELETE',",
+									"      header: {",
+									"        'Authorization': 'Bearer ' + pm.environment.get('apiKey')",
+									"      }",
+									"    });",
+									"  });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ai/knowledges/?where={\"projectId\":\"{{projectId}}\"}",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "knowledges", ""],
+							"query": [
+								{
+									"key": "where",
+									"value": "{\"projectId\":\"{{projectId}}\"}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "9 - Delete All Knowledge Bases",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var items = pm.response.json();",
+									"if (items && items.length) {",
+									"  items.forEach(function(item) {",
+									"    pm.sendRequest({",
+									"      url: pm.environment.get('baseUrl') + '/ai/knowledgeBases/' + item.id,",
+									"      method: 'DELETE',",
+									"      header: {",
+									"        'Authorization': 'Bearer ' + pm.environment.get('apiKey')",
+									"      }",
+									"    });",
+									"  });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ai/knowledgeBases/?where={\"projectId\":\"{{projectId}}\"}",
+							"host": ["{{baseUrl}}"],
+							"path": ["ai", "knowledgeBases", ""],
+							"query": [
+								{
+									"key": "where",
+									"value": "{\"projectId\":\"{{projectId}}\"}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

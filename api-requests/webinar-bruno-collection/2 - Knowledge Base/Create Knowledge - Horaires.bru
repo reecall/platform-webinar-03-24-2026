@@ -1,0 +1,21 @@
+meta {
+  name: Create Knowledge - Horaires
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/ai/knowledges/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Horaires d'ouverture",
+    "content": "Le cabinet est ouvert du lundi au vendredi de 8h30 à 12h30 et de 14h00 à 18h30. Le samedi matin de 9h00 à 12h00 sur rendez-vous uniquement. Le cabinet est fermé le dimanche et les jours fériés.",
+    "knowledgeBaseId": "{{knowledgeBaseId}}",
+    "available": true,
+    "projectId": "{{projectId}}"
+  }
+}
